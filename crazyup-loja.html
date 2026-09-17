@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrazyUp — Loja de Automação com IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0b0918;
+    --bg-mid: #171033;
+    --bg-panel: #1c1440;
+    --purple-1: #c9b6ff;
+    --purple-2: #8b5cf6;
+    --purple-3: #5b2fd6;
+    --purple-4: #2a1470;
+    --gold: #f8cf32;
+    --text: #f4f1ff;
+    --text-muted: #a99cd6;
+    --line: rgba(201, 182, 255, 0.22);
+    --radius: 4px;
+  }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="light"]) { color-scheme: dark; } }
+  :root[data-theme="dark"] { color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(ellipse 60% 45% at 22% 12%, rgba(139,92,246,0.22), transparent 60%),
+                radial-gradient(ellipse 50% 40% at 85% 30%, rgba(91,47,214,0.18), transparent 55%),
+                var(--bg-deep);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  h1, h2, h3, .display { font-family: 'Space Grotesk', 'Inter', sans-serif; }
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; } }
+
+  .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.7; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+  /* Header */
+  header { position: sticky; top: 0; z-index: 40; backdrop-filter: blur(10px); background: rgba(11,9,24,0.78); border-bottom: 1px solid var(--line); }
+  .header-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 20px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+  .brand-name { font-weight: 700; font-size: 20px; }
+  .brand-name .up { color: var(--gold); }
+  nav.main-nav { display: flex; gap: 26px; font-size: 15px; color: var(--text-muted); flex-wrap: wrap; }
+  nav.main-nav a { text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+  nav.main-nav a:hover { color: var(--text); }
+  nav.main-nav a.active { color: var(--text); border-bottom-color: var(--gold); }
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+  .icon-btn, .cart-btn {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    background: transparent; border: 1px solid var(--line); color: var(--text);
+    padding: 9px 14px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+  }
+  .icon-btn:hover, .cart-btn:hover { border-color: var(--purple-2); }
+  .cart-badge { background: var(--gold); color: #241a00; font-size: 11px; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+  main#app { min-height: 60vh; }
+
+  /* Hero */
+  .hero { padding: 88px 0 72px; text-align: center; }
+  .hero h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.14; font-weight: 700; margin: 0 0 18px; max-width: 760px; margin-inline: auto; }
+  .hero p { color: var(--text-muted); font-size: 18px; max-width: 560px; margin: 0 auto 34px; line-height: 1.6; }
+  .hero-cta { display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .btn-primary { background: linear-gradient(135deg, var(--purple-1), var(--purple-2) 55%, var(--purple-3)); color: #0b0918; border: none; font-weight: 700; font-size: 15px; padding: 13px 26px; border-radius: var(--radius); text-decoration: none; display: inline-block; }
+  .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); font-weight: 500; font-size: 15px; padding: 13px 26px; border-radius: var(--radius); text-decoration: none; display: inline-block; }
+  .btn-ghost:hover { border-color: var(--purple-2); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .orbit-divider { position: relative; height: 1px; margin: 0 auto 64px; max-width: 1180px; }
+  .orbit-divider::before { content: ""; position: absolute; inset: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--line) 20%, var(--line) 80%, transparent); }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+  .section-head h2 { font-size: 28px; margin: 0; }
+  .section-head span { color: var(--text-muted); font-size: 15px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .grid.pad-bottom { padding-bottom: 90px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } nav.main-nav { gap: 16px; font-size: 13.5px; } }
+
+  .card { position: relative; background: linear-gradient(160deg, var(--bg-panel), var(--bg-mid)); border: 1px solid var(--line);
+    clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    padding: 26px 24px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .card::before, .card::after { content: ""; position: absolute; width: 14px; height: 14px; border: 1.4px solid var(--purple-2); opacity: 0.75; }
+  .card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  .card.plain { clip-path: none; border-style: dashed; }
+
+  .card-icon { width: 46px; height: 46px; border-radius: 50%; border: 1.6px solid var(--gold); background: var(--bg-deep); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .card h3 { font-size: 19px; margin: 0; line-height: 1.3; }
+  .card h3 a { text-decoration: none; }
+  .card h3 a:hover { color: var(--purple-1); }
+  .card p.desc { color: var(--text-muted); font-size: 14px; line-height: 1.55; margin: 0; flex-grow: 1; }
+  .card-tag { font-size: 11.5px; color: var(--purple-1); letter-spacing: 0.4px; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; gap: 10px; }
+  .price { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 21px; }
+  .add-btn { background: transparent; border: 1px solid var(--purple-2); color: var(--purple-1); font-size: 13.5px; font-weight: 600; padding: 9px 14px; border-radius: var(--radius); transition: background 0.15s, color 0.15s; white-space: nowrap; }
+  .add-btn:hover { background: var(--purple-2); color: #0b0918; }
+  .add-btn.added { background: var(--gold); border-color: var(--gold); color: #241a00; }
+
+  /* Filtro de categorias */
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
+  .filter-chip { background: transparent; border: 1px solid var(--line); color: var(--text-muted); font-size: 13.5px; padding: 8px 16px; border-radius: 999px; }
+  .filter-chip:hover { border-color: var(--purple-2); color: var(--text); }
+  .filter-chip.active { background: var(--purple-2); border-color: var(--purple-2); color: #0b0918; font-weight: 600; }
+
+  /* Breadcrumb */
+  .breadcrumb { font-size: 13.5px; color: var(--text-muted); margin: 26px 0 0; }
+  .breadcrumb a { text-decoration: none; }
+  .breadcrumb a:hover { color: var(--text); }
+
+  /* Página de produto */
+  .product-detail { display: grid; grid-template-columns: 340px 1fr; gap: 44px; padding: 30px 0 70px; align-items: start; }
+  @media (max-width: 820px) { .product-detail { grid-template-columns: 1fr; } }
+  .product-visual { position: relative; aspect-ratio: 1; background: linear-gradient(160deg, var(--bg-panel), var(--bg-mid)); border: 1px solid var(--line);
+    clip-path: polygon(0 18px, 18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+    display: flex; align-items: center; justify-content: center; }
+  .product-visual .icon-big { font-size: 76px; }
+  .product-visual .ring { position: absolute; inset: 26px; border: 1px dashed var(--line); border-radius: 50%; }
+  .product-title { font-size: 30px; margin: 8px 0 6px; line-height: 1.2; }
+  .product-price-row { display: flex; align-items: baseline; gap: 14px; margin: 14px 0 22px; }
+  .product-price-row .price { font-size: 30px; }
+  .product-long-desc { color: var(--text-muted); font-size: 15.5px; line-height: 1.7; max-width: 60ch; margin-bottom: 26px; }
+  .includes-list { list-style: none; padding: 0; margin: 0 0 30px; display: flex; flex-direction: column; gap: 10px; }
+  .includes-list li { font-size: 14.5px; color: var(--text); display: flex; gap: 10px; align-items: baseline; }
+  .includes-list li::before { content: "◆"; color: var(--gold); font-size: 10px; position: relative; top: -2px; }
+  .product-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .format-note { color: var(--text-muted); font-size: 13px; margin-top: 18px; }
+
+  /* Sobre */
+  .about-block { padding: 10px 0 50px; max-width: 720px; }
+  .about-block p { color: var(--text-muted); font-size: 16px; line-height: 1.75; }
+  .about-values { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; padding-bottom: 70px; }
+  @media (max-width: 820px) { .about-values { grid-template-columns: 1fr; } }
+
+  /* Contato */
+  .contact-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; padding: 10px 0 80px; }
+  @media (max-width: 820px) { .contact-grid { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; background: var(--bg-deep); border: 1px solid var(--line); color: var(--text); padding: 11px 12px; border-radius: var(--radius); font-size: 14px; font-family: inherit; }
+  .field textarea { resize: vertical; min-height: 110px; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--purple-2); outline: none; }
+  .contact-info-card { background: linear-gradient(160deg, var(--bg-panel), var(--bg-mid)); border: 1px solid var(--line); padding: 26px; height: fit-content;
+    clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+  .contact-info-card h3 { margin-top: 0; }
+  .contact-info-row { display: flex; gap: 12px; margin-bottom: 16px; font-size: 14.5px; color: var(--text-muted); }
+  .contact-info-row strong { color: var(--text); display: block; font-size: 14px; }
+  .form-success { padding: 40px 20px; text-align: center; }
+
+  /* Área do cliente */
+  .client-wrap { max-width: 420px; margin: 40px auto 90px; }
+  .client-wrap.dashboard { max-width: 720px; }
+  .login-card, .dash-card { background: linear-gradient(160deg, var(--bg-panel), var(--bg-mid)); border: 1px solid var(--line); padding: 32px 30px;
+    clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+  .login-card h2, .dash-card h2 { margin-top: 0; }
+  .demo-note { background: rgba(139,92,246,0.1); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; margin: 18px 0; }
+  .purchased-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .purchased-item:last-child { border-bottom: none; }
+  .purchased-item .pi-left { display: flex; align-items: center; gap: 12px; }
+
+  footer { border-top: 1px solid var(--line); padding: 38px 0 46px; color: var(--text-muted); font-size: 13.5px; }
+  footer .foot-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  /* Cart drawer */
+  .overlay { position: fixed; inset: 0; background: rgba(5,4,14,0.6); z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 400px; max-width: 90vw; background: var(--bg-mid); border-left: 1px solid var(--line); transform: translateX(100%); transition: transform 0.25s ease; z-index: 61; display: flex; flex-direction: column; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 22px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .drawer-head h3 { margin: 0; font-size: 18px; }
+  .close-x { background: none; border: none; color: var(--text-muted); font-size: 20px; line-height: 1; }
+  .close-x:hover { color: var(--text); }
+  .drawer-items { flex-grow: 1; overflow-y: auto; padding: 8px 24px; }
+  .cart-item { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .cart-item .ci-icon { width: 38px; height: 38px; border-radius: 50%; border: 1.4px solid var(--gold); display: flex; align-items:center; justify-content:center; flex-shrink: 0; font-size: 16px;}
+  .cart-item .ci-info { flex-grow: 1; }
+  .cart-item .ci-info h4 { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; }
+  .qty-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .qty-row button { background: var(--bg-panel); border: 1px solid var(--line); color: var(--text); width: 22px; height: 22px; border-radius: 3px; font-size: 13px; }
+  .qty-row span { font-size: 13.5px; min-width: 14px; text-align: center; }
+  .ci-price { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .remove-link { background: none; border: none; color: var(--text-muted); font-size: 12px; text-decoration: underline; padding: 0; margin-top: 6px; }
+  .remove-link:hover { color: var(--gold); }
+  .empty-cart { color: var(--text-muted); font-size: 14px; text-align: center; padding: 60px 10px; }
+  .drawer-foot { border-top: 1px solid var(--line); padding: 20px 24px 26px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 16px; }
+  .total-row strong { font-family: 'Space Grotesk', sans-serif; font-size: 20px; }
+  .drawer-foot .btn-primary { width: 100%; padding: 14px; font-size: 15px; border: none; }
+
+  /* Checkout modal */
+  .modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal.open { opacity: 1; pointer-events: auto; }
+  .modal-box { background: var(--bg-panel); border: 1px solid var(--line); max-width: 440px; width: 100%; padding: 32px 30px;
+    clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+  .modal-box h3 { margin: 0 0 6px; font-size: 21px; }
+  .modal-box p.sub { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
+  .note-box { background: rgba(139,92,246,0.1); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; margin: 18px 0 22px; }
+  .modal-actions { display: flex; gap: 12px; }
+  .modal-actions .btn-ghost, .modal-actions .btn-primary { flex: 1; text-align: center; border: none; }
+  .modal-actions .btn-ghost { border: 1px solid var(--line); }
+  .success-icon { width: 54px; height: 54px; margin: 0 auto 18px; display:block; }
+  .modal-box.success, .success { text-align: center; }
+</style>
+</head>
+<body>
+
+<svg class="stars" id="starsSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+<header>
+  <div class="wrap header-row">
+    <a class="brand" href="#/">
+      <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="48" fill="#12102b" stroke="#8b5cf6" stroke-width="1.4" opacity="0.6"/>
+        <path d="M50 12 C68 40 71 62 62 82 L58 90 L42 90 L38 82 C29 62 32 40 50 12 Z" fill="url(#hg)"/>
+        <circle cx="50" cy="42" r="12" fill="#12102b" stroke="#f8cf32" stroke-width="2.4"/>
+        <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c9b6ff"/><stop offset="55%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#5b2fd6"/></linearGradient></defs>
+      </svg>
+      <span class="brand-name">Crazy<span class="up">Up</span></span>
+    </a>
+    <nav class="main-nav" id="mainNav">
+      <a href="#/" data-route="/">Início</a>
+      <a href="#/produtos" data-route="/produtos">Produtos</a>
+      <a href="#/sobre" data-route="/sobre">Sobre</a>
+      <a href="#/contato" data-route="/contato">Contato</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn" href="#/cliente">👤 <span style="display:none" class="hide-mobile">Cliente</span></a>
+      <button class="cart-btn" onclick="openCart()" aria-label="Abrir carrinho">🛒 <span class="cart-badge" id="cartBadge">0</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span>© 2026 CrazyUp — Automação com Inteligência Artificial</span>
+    <span><a href="#/contato" style="text-decoration:none;">contato@crazyup.com.br</a></span>
+  </div>
+</footer>
+
+<!-- Cart drawer -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<aside class="drawer" id="drawer" aria-label="Carrinho de compras">
+  <div class="drawer-head"><h3>Seu carrinho</h3><button class="close-x" onclick="closeCart()" aria-label="Fechar carrinho">✕</button></div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-foot">
+    <div class="total-row"><span>Total</span><strong id="cartTotal">R$ 0</strong></div>
+    <button class="btn-primary" id="checkoutOpenBtn" onclick="openCheckout()">Finalizar compra</button>
+  </div>
+</aside>
+
+<!-- Checkout modal -->
+<div class="modal" id="checkoutModal"><div class="modal-box" id="checkoutBox"></div></div>
+
+<script>
+  // ---------- Estrelas de fundo ----------
+  (function(){
+    const svg = document.getElementById('starsSvg');
+    const w = window.innerWidth, h = Math.max(window.innerHeight, 1400) * 2.4;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w); svg.setAttribute('height', h);
+    let html = '';
+    for (let i=0;i<160;i++){
+      const x = Math.random()*w, y = Math.random()*h, r = Math.random()*1.6+0.4;
+      const gold = Math.random() < 0.15;
+      html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${gold ? '#f8cf32' : '#ffffff'}" opacity="${(Math.random()*0.6+0.3).toFixed(2)}"/>`;
+    }
+    svg.innerHTML = html;
+  })();
+
+  // ---------- Dados de produtos ----------
+  const PRODUCTS = [
+    { id: 'p1', icon: '🤖', tag: 'Automação · N8N', category: 'Automação', name: 'Pacote de Automações N8N — Atendimento com IA', desc: 'Fluxos prontos para qualificar leads e responder no WhatsApp usando IA, com integração a planilhas e CRM.',
+      longDesc: 'Um conjunto de automações já montadas no N8N para você importar e adaptar em minutos. Cobre desde a captura de leads até a resposta automática com IA, reduzindo o tempo de atendimento e evitando retrabalho manual.',
+      includes: ['6 fluxos prontos para importar no N8N', 'Prompts de IA já ajustados para atendimento', 'Guia de instalação passo a passo em vídeo', 'Integração com Google Sheets e WhatsApp'],
+      format: 'Arquivos .json (N8N) + PDF + vídeo · acesso imediato após a compra', price: 197 },
+    { id: 'p2', icon: '📘', tag: 'E-book', category: 'E-book', name: 'Automação de Processos com IA para PMEs', desc: 'Guia prático com casos reais de automação para reduzir tarefas repetitivas em pequenas e médias empresas.',
+      longDesc: 'Um e-book direto ao ponto para donos de pequenas e médias empresas que querem começar a automatizar processos sem depender de uma equipe técnica grande. Traz exemplos reais de fluxos simples que já economizam horas por semana.',
+      includes: ['112 páginas em PDF', '9 estudos de caso de automação', 'Checklist de processos para automatizar primeiro', 'Lista de ferramentas recomendadas'],
+      format: 'PDF · leitura em qualquer dispositivo · acesso imediato', price: 47 },
+    { id: 'p3', icon: '💬', tag: 'Template', category: 'Template', name: 'Chatbot com IA para WhatsApp', desc: 'Template pronto para configurar um atendente virtual com IA, incluindo prompts e fluxo de conversa.',
+      longDesc: 'Template completo de chatbot para WhatsApp com IA, pronto para ser personalizado com o tom de voz da sua marca. Inclui o fluxo de conversa desenhado e os prompts já testados para as situações mais comuns de atendimento.',
+      includes: ['Fluxo de conversa completo', 'Prompts testados para IA', 'Modelo de configuração para as principais plataformas de WhatsApp API', 'Suporte por e-mail nos primeiros 30 dias'],
+      format: 'Arquivo de configuração + PDF de instruções', price: 127 },
+    { id: 'p4', icon: '🎓', tag: 'Curso', category: 'Curso', name: 'Construindo Agentes de IA do Zero', desc: 'Curso em vídeo passo a passo para criar agentes de IA capazes de executar tarefas e tomar decisões.',
+      longDesc: 'Curso em vídeo pensado para quem já usa IA no dia a dia e quer dar o próximo passo: construir agentes capazes de executar tarefas com autonomia, conectando ferramentas e tomando pequenas decisões dentro de regras definidas por você.',
+      includes: ['8 horas de vídeo em módulos curtos', 'Projetos práticos guiados', 'Material de apoio em PDF', 'Acesso vitalício às atualizações do curso'],
+      format: 'Vídeo sob demanda + PDF · acesso imediato após a compra', price: 297 },
+    { id: 'p5', icon: '✨', tag: 'Kit de Prompts', category: 'Template', name: 'Prompts para Automação de Marketing', desc: 'Mais de 80 prompts testados para gerar campanhas, copy e relatórios com IA em minutos.',
+      longDesc: 'Uma biblioteca de prompts organizada por objetivo (campanhas, copy, relatórios, planejamento) para você parar de começar do zero toda vez que for usar IA no marketing. Testados e ajustados para respostas mais úteis e menos genéricas.',
+      includes: ['80+ prompts organizados por categoria', 'Versão para copiar e colar em qualquer IA de texto', 'Guia de como adaptar cada prompt ao seu negócio'],
+      format: 'PDF + planilha · acesso imediato', price: 67 },
+    { id: 'p6', icon: '📊', tag: 'Template', category: 'Template', name: 'Dashboard de Automação (Notion + IA)', desc: 'Painel em Notion para acompanhar automações ativas, status de execução e retorno estimado.',
+      longDesc: 'Um painel dentro do Notion para você enxergar em um único lugar quais automações estão ativas, quando rodaram pela última vez e uma estimativa do tempo que estão economizando. Feito para quem já tem várias automações e perdeu a visão geral delas.',
+      includes: ['Template de Notion pronto para duplicar', 'Campos de status e retorno estimado já configurados', 'Vídeo curto de configuração inicial'],
+      format: 'Template Notion (link de duplicação) · acesso imediato', price: 87 },
+  ];
+
+  // ---------- Roteador ----------
+  function currentPath(){
+    const h = location.hash || '#/';
+    return h.slice(1) || '/';
+  }
+  function router(){
+    const path = currentPath();
+    const app = document.getElementById('app');
+    window.scrollTo(0,0);
+
+    document.querySelectorAll('#mainNav a').forEach(a=>{
+      a.classList.toggle('active', a.dataset.route === (path.startsWith('/produtos') && path!=='/produtos' ? '/produtos' : path));
+    });
+
+    if (path === '/' ) return renderHome(app);
+    if (path === '/produtos') return renderCatalogo(app);
+    if (path.startsWith('/produto/')) return renderProdutoDetail(app, path.split('/produto/')[1]);
+    if (path === '/sobre') return renderSobre(app);
+    if (path === '/contato') return renderContato(app);
+    if (path === '/cliente') return renderCliente(app);
+    return renderHome(app);
+  }
+  window.addEventListener('hashchange', router);
+  window.addEventListener('load', router);
+
+  function productCard(p){
+    return `
+      <div class="card">
+        <div class="card-icon">${p.icon}</div>
+        <span class="card-tag">${p.tag}</span>
+        <h3><a href="#/produto/${p.id}">${p.name}</a></h3>
+        <p class="desc">${p.desc}</p>
+        <div class="card-foot">
+          <span class="price">${formatBRL(p.price)}</span>
+          <button class="add-btn" id="add-${p.id}" onclick="addToCart('${p.id}', event)">Adicionar</button>
+        </div>
+      </div>`;
+  }
+
+  // ---------- Página: Início ----------
+  function renderHome(app){
+    const featured = PRODUCTS.slice(0,3);
+    app.innerHTML = `
+      <div class="wrap">
+        <section class="hero">
+          <h1>Automação e IA prontas para colocar sua operação em órbita.</h1>
+          <p>Templates, automações e treinamentos que a CrazyUp mesma constrói e usa — para você aplicar em dias, não meses.</p>
+          <div class="hero-cta">
+            <a href="#/produtos" class="btn-primary">Ver produtos</a>
+            <a href="#/sobre" class="btn-ghost">Como funciona</a>
+          </div>
+        </section>
+        <div class="orbit-divider"></div>
+        <section>
+          <div class="section-head"><h2>Produtos em destaque</h2><span><a href="#/produtos" style="color:var(--text-muted); text-decoration:none;">ver catálogo completo →</a></span></div>
+          <div class="grid pad-bottom">${featured.map(productCard).join('')}</div>
+        </section>
+        <section style="padding-bottom: 80px;">
+          <div class="section-head"><h2>Como funciona</h2></div>
+          <div class="grid">
+            <div class="card plain"><div class="card-icon">1</div><h3>Escolha o produto</h3><p class="desc">Explore os templates, automações e cursos e adicione ao carrinho o que resolve o seu problema agora.</p></div>
+            <div class="card plain"><div class="card-icon">2</div><h3>Finalize o pedido</h3><p class="desc">No checkout você confirma seus dados. Nesta demonstração o pagamento é simulado.</p></div>
+            <div class="card plain"><div class="card-icon">3</div><h3>Receba o acesso</h3><p class="desc">Em uma loja real, o link de download chega por e-mail e também fica disponível na Área do Cliente.</p></div>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // ---------- Página: Catálogo ----------
+  let activeFilter = 'Todos';
+  function renderCatalogo(app){
+    const cats = ['Todos', ...new Set(PRODUCTS.map(p=>p.category))];
+    const list = activeFilter === 'Todos' ? PRODUCTS : PRODUCTS.filter(p=>p.category===activeFilter);
+    app.innerHTML = `
+      <div class="wrap">
+        <div class="breadcrumb">Produtos</div>
+        <div class="section-head" style="margin-top:18px;"><h2>Catálogo</h2><span>${list.length} de ${PRODUCTS.length} itens</span></div>
+        <div class="filters">${cats.map(c=>`<button class="filter-chip ${c===activeFilter?'active':''}" onclick="setFilter('${c}')">${c}</button>`).join('')}</div>
+        <div class="grid pad-bottom" id="catalogGrid">${list.map(productCard).join('')}</div>
+      </div>`;
+  }
+  function setFilter(c){ activeFilter = c; renderCatalogo(document.getElementById('app')); }
+
+  // ---------- Página: Produto ----------
+  function renderProdutoDetail(app, id){
+    const p = PRODUCTS.find(x=>x.id===id);
+    if (!p){ app.innerHTML = `<div class="wrap"><p style="padding:60px 0;color:var(--text-muted);">Produto não encontrado. <a href="#/produtos">Voltar ao catálogo</a></p></div>`; return; }
+    const related = PRODUCTS.filter(x=>x.id!==id).slice(0,3);
+    app.innerHTML = `
+      <div class="wrap">
+        <div class="breadcrumb"><a href="#/produtos">Produtos</a> / ${p.name}</div>
+        <div class="product-detail">
+          <div class="product-visual"><div class="ring"></div><span class="icon-big">${p.icon}</span></div>
+          <div>
+            <span class="card-tag">${p.tag}</span>
+            <h1 class="product-title">${p.name}</h1>
+            <div class="product-price-row"><span class="price">${formatBRL(p.price)}</span><span style="color:var(--text-muted); font-size:13.5px;">pagamento único · acesso imediato</span></div>
+            <p class="product-long-desc">${p.longDesc}</p>
+            <ul class="includes-list">${p.includes.map(i=>`<li>${i}</li>`).join('')}</ul>
+            <div class="product-actions">
+              <button class="add-btn" style="padding:13px 26px; font-size:15px;" id="add-${p.id}" onclick="addToCart('${p.id}', event)">Adicionar ao carrinho</button>
+              <button class="btn-primary" onclick="addToCart('${p.id}', event); openCheckout();">Comprar agora</button>
+            </div>
+            <p class="format-note">Formato: ${p.format}</p>
+          </div>
+        </div>
+        <div class="orbit-divider"></div>
+        <section style="padding-bottom:80px;">
+          <div class="section-head"><h2>Você também pode gostar</h2></div>
+          <div class="grid">${related.map(productCard).join('')}</div>
+        </section>
+      </div>`;
+  }
+
+  // ---------- Página: Sobre ----------
+  function renderSobre(app){
+    app.innerHTML = `
+      <div class="wrap">
+        <div class="breadcrumb">Sobre</div>
+        <section class="about-block" style="margin-top:18px;">
+          <h1 style="font-size:36px;">Automação com IA, feita por quem usa no próprio negócio</h1>
+          <p>A CrazyUp nasceu da necessidade de resolver tarefas repetitivas do próprio dia a dia. Em vez de guardar as soluções, transformamos cada automação, template e processo testado em um produto que outras empresas podem aplicar diretamente.</p>
+          <p>Não vendemos apenas arquivos: vendemos o caminho mais curto entre "isso deveria ser automático" e a automação realmente funcionando.</p>
+        </section>
+        <div class="section-head"><h2>Como trabalhamos</h2></div>
+        <div class="about-values">
+          <div class="card plain"><div class="card-icon">◆</div><h3>Testado antes de vender</h3><p class="desc">Cada automação ou template só vira produto depois de ter sido usado de verdade em um caso real.</p></div>
+          <div class="card plain"><div class="card-icon">◆</div><h3>Sem jargão desnecessário</h3><p class="desc">Documentação e instruções escritas para quem quer aplicar rápido, não para impressionar.</p></div>
+          <div class="card plain"><div class="card-icon">◆</div><h3>Foco em resultado</h3><p class="desc">Cada produto existe para resolver um problema específico de tempo ou operação, não para ser mais um curso na prateleira.</p></div>
+        </div>
+      </div>`;
+  }
+
+  // ---------- Página: Contato ----------
+  function renderContato(app){
+    app.innerHTML = `
+      <div class="wrap">
+        <div class="breadcrumb">Contato</div>
+        <div class="section-head" style="margin-top:18px;"><h2>Fale com a gente</h2></div>
+        <div class="contact-grid">
+          <div id="contactFormWrap">
+            <form onsubmit="return submitContact(event)">
+              <div class="field"><label for="cName">Nome</label><input id="cName" required type="text" placeholder="Seu nome"></div>
+              <div class="field"><label for="cEmail">E-mail</label><input id="cEmail" required type="email" placeholder="voce@email.com"></div>
+              <div class="field"><label for="cSubject">Assunto</label>
+                <select id="cSubject"><option>Dúvida sobre um produto</option><option>Problema com acesso</option><option>Parceria</option><option>Outro</option></select>
+              </div>
+              <div class="field"><label for="cMsg">Mensagem</label><textarea id="cMsg" required placeholder="Como podemos ajudar?"></textarea></div>
+              <button class="btn-primary" type="submit" style="border:none;">Enviar mensagem</button>
+            </form>
+          </div>
+          <div class="contact-info-card">
+            <h3>Outros canais</h3>
+            <div class="contact-info-row">📧 <div><strong>E-mail</strong>contato@crazyup.com.br</div></div>
+            <div class="contact-info-row">🕐 <div><strong>Atendimento</strong>Segunda a sexta, 9h às 18h</div></div>
+            <div class="contact-info-row">💬 <div><strong>Suporte pós-compra</strong>Respondemos em até 1 dia útil</div></div>
+          </div>
+        </div>
+      </div>`;
+  }
+  function submitContact(ev){
+    ev.preventDefault();
+    document.getElementById('contactFormWrap').innerHTML = `
+      <div class="card plain form-success">
+        <h3>Mensagem enviada</h3>
+        <p class="desc">Nesta demonstração o envio é simulado — em produção, isso dispararia um e-mail real para a equipe CrazyUp.</p>
+      </div>`;
+    return false;
+  }
+
+  // ---------- Página: Área do Cliente ----------
+  let clientLoggedIn = false;
+  function renderCliente(app){
+    if (!clientLoggedIn){
+      app.innerHTML = `
+        <div class="wrap">
+          <div class="client-wrap">
+            <div class="login-card">
+              <h2>Área do Cliente</h2>
+              <p style="color:var(--text-muted); font-size:14.5px; margin-top:-8px;">Acesse para ver seus produtos comprados.</p>
+              <form onsubmit="return doLogin(event)">
+                <div class="field"><label for="lEmail">E-mail</label><input id="lEmail" type="email" required placeholder="voce@email.com"></div>
+                <div class="field"><label for="lPass">Senha</label><input id="lPass" type="password" required placeholder="••••••••"></div>
+                <button class="btn-primary" type="submit" style="width:100%; border:none;">Entrar</button>
+              </form>
+              <div class="demo-note">Demonstração: qualquer e-mail e senha entram. Uma área do cliente real precisaria de contas e senhas guardadas com segurança em um backend.</div>
+              <p style="font-size:13.5px; color:var(--text-muted);">Ainda não comprou nada? <a href="#/produtos">Veja os produtos</a>.</p>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+    const purchased = PRODUCTS.slice(0,2);
+    app.innerHTML = `
+      <div class="wrap">
+        <div class="client-wrap dashboard">
+          <div class="dash-card">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <h2>Meus produtos</h2>
+              <button class="btn-ghost" onclick="doLogout()">Sair</button>
+            </div>
+            <div class="demo-note">Exemplo de painel: em uma loja real, esta lista mostraria os produtos que este e-mail realmente comprou.</div>
+            ${purchased.map(p=>`
+              <div class="purchased-item">
+                <div class="pi-left"><div class="card-icon">${p.icon}</div><div><strong style="display:block;">${p.name}</strong><span style="color:var(--text-muted); font-size:13px;">Comprado em 12/09/2026</span></div></div>
+                <button class="add-btn" onclick="alert('Nesta demonstração não há arquivo real para baixar.')">Baixar</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>`;
+  }
+  function doLogin(ev){ ev.preventDefault(); clientLoggedIn = true; renderCliente(document.getElementById('app')); return false; }
+  function doLogout(){ clientLoggedIn = false; renderCliente(document.getElementById('app')); }
+
+  // ---------- Carrinho ----------
+  const cart = {};
+  function formatBRL(v){ return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function addToCart(id, ev){
+    if (ev) ev.stopPropagation();
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+    const btn = document.getElementById('add-'+id);
+    if (btn){ btn.textContent = 'Adicionado ✓'; btn.classList.add('added'); setTimeout(()=>{ btn.textContent = btn.dataset.big ? 'Adicionar ao carrinho' : 'Adicionar'; btn.classList.remove('added'); }, 1100); }
+    openCart();
+  }
+  function changeQty(id, delta){ cart[id] = (cart[id]||0) + delta; if (cart[id] <= 0) delete cart[id]; renderCart(); }
+  function removeItem(id){ delete cart[id]; renderCart(); }
+  function cartEntries(){ return Object.entries(cart).map(([id, qty]) => ({ ...PRODUCTS.find(p=>p.id===id), qty })); }
+  function cartTotal(){ return cartEntries().reduce((s,i)=> s + i.price*i.qty, 0); }
+  function cartCount(){ return Object.values(cart).reduce((s,q)=>s+q,0); }
+
+  function renderCart(){
+    document.getElementById('cartBadge').textContent = cartCount();
+    document.getElementById('cartTotal').textContent = formatBRL(cartTotal());
+    const wrap = document.getElementById('drawerItems');
+    const entries = cartEntries();
+    const checkoutBtn = document.getElementById('checkoutOpenBtn');
+    checkoutBtn.disabled = entries.length === 0;
+    checkoutBtn.style.opacity = entries.length === 0 ? 0.5 : 1;
+    if (entries.length === 0){ wrap.innerHTML = `<div class="empty-cart">Seu carrinho está vazio.<br>Adicione um produto para começar.</div>`; return; }
+    wrap.innerHTML = entries.map(i => `
+      <div class="cart-item">
+        <div class="ci-icon">${i.icon}</div>
+        <div class="ci-info">
+          <h4>${i.name}</h4>
+          <div class="qty-row"><button onclick="changeQty('${i.id}', -1)" aria-label="Diminuir">–</button><span>${i.qty}</span><button onclick="changeQty('${i.id}', 1)" aria-label="Aumentar">+</button></div>
+          <button class="remove-link" onclick="removeItem('${i.id}')">Remover</button>
+        </div>
+        <div class="ci-price">${formatBRL(i.price*i.qty)}</div>
+      </div>`).join('');
+  }
+  renderCart();
+
+  function openCart(){ document.getElementById('drawer').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+  function closeCart(){ document.getElementById('drawer').classList.remove('open'); if (!document.getElementById('checkoutModal').classList.contains('open')) document.getElementById('overlay').classList.remove('open'); }
+  function closeAll(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+
+  function openCheckout(){
+    if (cartCount() === 0) return;
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('checkoutModal').classList.add('open');
+    renderCheckoutForm();
+  }
+  function closeCheckout(){ document.getElementById('checkoutModal').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+  function renderCheckoutForm(){
+    document.getElementById('checkoutBox').innerHTML = `
+      <h3>Finalizar compra</h3>
+      <p class="sub">Total do pedido: <strong>${formatBRL(cartTotal())}</strong></p>
+      <div class="field"><label for="ckName">Nome</label><input id="ckName" type="text" placeholder="Seu nome completo"></div>
+      <div class="field"><label for="ckEmail">E-mail para receber o acesso</label><input id="ckEmail" type="email" placeholder="voce@email.com"></div>
+      <div class="note-box">Esta é uma demonstração: nenhum pagamento real é processado aqui. Para cobrar de verdade, conecte esta loja a um gateway como Mercado Pago (Pix/cartão) ou Stripe.</div>
+      <div class="modal-actions"><button class="btn-ghost" onclick="closeCheckout()">Voltar</button><button class="btn-primary" onclick="confirmOrder()">Confirmar pedido</button></div>`;
+  }
+  function confirmOrder(){
+    const orderNum = 'CU-' + Math.floor(100000 + Math.random()*900000);
+    document.getElementById('checkoutBox').innerHTML = `
+      <div class="success">
+        <svg class="success-icon" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#f8cf32" stroke-width="3"/><path d="M30 52 L44 66 L72 36" fill="none" stroke="#f8cf32" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Pedido confirmado</h3>
+        <p class="sub">Pedido simulado <strong>${orderNum}</strong> — total ${formatBRL(cartTotal())}.</p>
+        <div class="note-box">Em uma loja com pagamento real, o link de acesso chegaria agora no e-mail informado e também apareceria na Área do Cliente.</div>
+        <button class="btn-primary" style="width:100%; border:none;" onclick="finishDemo()">Fechar</button>
+      </div>`;
+    Object.keys(cart).forEach(k => delete cart[k]);
+    renderCart();
+  }
+  function finishDemo(){ closeAll(); }
+</script>
+</body>
+</html>
